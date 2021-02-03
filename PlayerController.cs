@@ -14,15 +14,20 @@ public class PlayerController : MonoBehaviour
     private int count;
     private float movementX;
     private float movementY;
+    private Vector3 posicionInicio;
 
     // Start is called before the first frame update
     void Start()
     {
+        Screen.orientation = ScreenOrientation.LandscapeLeft;
+
         rb = GetComponent <Rigidbody>();
         count = 0;
 
         SetCountText();
         winTextObject.SetActive(false);
+
+        posicionInicio = this.transform.position;
     }
 
     void OnMove(InputValue movementValue)
@@ -45,8 +50,18 @@ public class PlayerController : MonoBehaviour
     void FixedUpdate()
     {
         Vector3 movement = new Vector3(movementX, 0.0f, movementY);
-
         rb.AddForce(movement * speed);
+
+        // recogemos los datos del acelerometro
+        Vector3 dir = Vector3.zero;
+        dir.z = Input.acceleration.y;
+        dir.x = Input.acceleration.x;
+        if (dir.sqrMagnitude > 1)
+            dir.Normalize();
+        
+        dir *= Time.deltaTime;
+        transform.Translate(dir * speed);
+
     }
 
     private void OnTriggerEnter(Collider other)
@@ -58,5 +73,13 @@ public class PlayerController : MonoBehaviour
 
             SetCountText();
         }
+
+        if(other.gameObject.CompareTag("Enemy"))
+        {
+            this.transform.position=posicionInicio;
+            count = count -1;
+            SetCountText();
+        }
     }
+
 }
